@@ -31,22 +31,62 @@
         });
 
 
-    d3.csv("timeline.csv", function(data) {
+    d3.csv("data.csv", function(data) {
 
-        // convert your csv data and add it to dataSet
+        dataSet = data;
+        console.log(dataSet);// convert your csv data and add it to dataSet
 
         return createVis();
     });
 
     createVis = function() {
-        var xAxis, xScale, yAxis,  yScale;
+        var xAxis, xScale, yAxis,  yScale, line;
 
-          xScale = d3.scale.linear().domain([0,100]).range([0, bbVis.w]);  // define the right domain generically
-//        yScale = .. // define the right y domain and range -- use bbVis
+        var visFrame = svg.append("g").attr({
+              "transform": "translate(" + bbVis.x + "," + (bbVis.y + bbVis.h) + ")",
+              //....
 
-//        xAxis = ..
-//        yAxis = ..
-//        // add y axis to svg !
+          });
 
+          visFrame.append("rect");
+
+        xScale = d3.scale.linear().range([0, bbVis.w]);  // define the right domain generically
+        yScale = d3.scale.linear().range([bbVis.h,0]) // define the right y domain and range -- use bbVis
+
+        xScale.domain(d3.extent(dataSet, function(d,i) { return d.year; }));
+        yScale.domain(d3.extent(dataSet, function(d,i) { return d.USCensus; }));
+
+        //form axes
+        xAxis = d3.svg.axis()
+        .scale(xScale)
+        .orient("bottom");
+       
+        yAxis = d3.svg.axis()
+        .scale(yScale)
+        .orient("left");
+
+        line = d3.svg.line()
+        .x(function(d,i) { return xScale(d.year); })
+        .y(function(d,i) { return yScale(d.USCensus); });
+
+        svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+        svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("World Population Estimate");
+
+        svg.append("path")
+        .datum(dataSet)
+        .attr("class", "line")
+        .attr("d", line);
 
     };
