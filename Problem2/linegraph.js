@@ -2,6 +2,8 @@
  * Created by hen on 2/20/14.
  */
     var bbVis, brush, createVis, dataSet, handle, height, margin, svg, svg2, width;
+    var color = d3.scale.category10();
+
 
     margin = {
         top: 50,
@@ -21,7 +23,9 @@
         h: 100
     };
 
-    dataSet = [];
+    var dataSet = [];
+    var studies =[];
+
 
     svg = d3.select("#vis").append("svg").attr({
         width: width + margin.left + margin.right,
@@ -34,13 +38,28 @@
     d3.csv("data.csv", function(data) {
 
         dataSet = data;
-        console.log(dataSet);// convert your csv data and add it to dataSet
+        console.log(dataSet);
+        color.domain(d3.keys(dataSet[0]).filter(function(key) { return key !== "year"; }));
+          studies = color.domain().map(function(name) {
+            return {
+              name: name,
+              values: dataSet.map(function(d) {
+                return {year: +d.year, estimate: +d[name]};
+              })
+            };
+          });
+         
 
         return createVis();
     });
 
+
     createVis = function() {
         var xAxis, xScale, yAxis,  yScale, line;
+        console.log(studies);
+        
+
+       
 
         var visFrame = svg.append("g").attr({
               "transform": "translate(" + bbVis.x + "," + (bbVis.y + bbVis.h) + ")",
@@ -50,11 +69,17 @@
 
           visFrame.append("rect");
 
+         //restructure dataset  
+        
+
         xScale = d3.scale.linear().range([0, bbVis.w]);  // define the right domain generically
         yScale = d3.scale.linear().range([height,0]) // define the right y domain and range -- use bbVis
 
         xScale.domain(d3.extent(dataSet, function(d,i) { return d.year; }));
-        yScale.domain(d3.extent(dataSet, function(d,i) { return d.USCensus; }));
+        yScale.domain([
+        d3.min(studies, function(c) { return d3.min(c.values, function(v) { return v.estimate; }); }),
+        d3.max(studies, function(c) { return d3.max(c.values, function(v) { return v.estimate; }); })
+        ]);
 
         //form axes
         xAxis = d3.svg.axis()
@@ -65,9 +90,14 @@
         .scale(yScale)
         .orient("left");
 
-        line = d3.svg.line()
-        .x(function(d,i) { return xScale(d.year); })
-        .y(function(d,i) { return yScale(d.USCensus); });
+        var line = d3.svg.line()
+        .interpolate("linear")
+        .x(function(d) { return xScale(d.year); })
+        .y(function(d) { return yScale(d.estimate); });
+
+         // line = d3.svg.line()
+         // .x(function(d,i) { return xScale(d.year); })
+         // .y(function(d,i) { return yScale(d.USCensus); });
 
         svg.append("g")
         .attr("class", "x axis")
@@ -84,11 +114,38 @@
         .style("text-anchor", "end")
         .text("World Population Estimate");
 
-        svg.append("path")
-        .datum(dataSet)
-        .attr("class", "line")
-        .attr("d", line);
+        
         //.attr("fill", "none");
+        var study = svg.selectAll(".study")
+        .data(studies)
+        .enter().append("g")
+        .attr("class", "study");
 
+        study.append("path")
+        .attr("class", "line")
+        //console.log(dataSet.studies)
+        .attr("d", function(d) { return line(d.values); })
+        .style("stroke", function(d) { return color(d.name); });
+
+        study.append("text")
+        .datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
+        .attr("transform", function(d) { return "translate(" + xScale(d.value.year) + "," + yScale(d.value.estimate) + ")"; })
+        .attr("x", 3)
+        .attr("dy", ".35em")
+        .text(function(d) { return d.name; });
+
+        //adds points to line
+        var point = study.append("g")
+        .attr("class", "line-point");
+
+        point.selectAll('circle')
+        .data(function(d){ return d.values})
+        .enter().append('circle')
+        .attr("cx", function(d) { return xScale(d.year) })
+        .attr("cy", function(d) { return yScale(d.estimate) })
+        .attr("r", 3.5)
+        .style("fill", function(d) { return color(this.parentNode.__data__.name);})
+        .style("stroke", function(d) { return color(this.parentNode.__data__.name); })
+        
         //d3.select('line').style('fill','none');
     };
