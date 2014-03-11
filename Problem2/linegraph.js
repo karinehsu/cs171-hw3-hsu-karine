@@ -7,7 +7,7 @@
         top: 50,
         right: 50,
         bottom: 50,
-        left: 50
+        left: 150
     };
 
     width = 960 - margin.left - margin.right;
@@ -51,7 +51,7 @@
           visFrame.append("rect");
 
         xScale = d3.scale.linear().range([0, bbVis.w]);  // define the right domain generically
-        yScale = d3.scale.linear().range([bbVis.h,0]) // define the right y domain and range -- use bbVis
+        yScale = d3.scale.linear().range([height,0]) // define the right y domain and range -- use bbVis
 
         xScale.domain(d3.extent(dataSet, function(d,i) { return d.year; }));
         yScale.domain(d3.extent(dataSet, function(d,i) { return d.USCensus; }));
@@ -88,5 +88,7 @@
         .datum(dataSet)
         .attr("class", "line")
         .attr("d", line);
+        //.attr("fill", "none");
 
+        //d3.select('line').style('fill','none');
     };
