@@ -22,14 +22,54 @@
             root = $("<div></div>")
             root.html(data.responseText)
 
-            var content = root.find("#content"); // find all the nodes that have ID "content"
-            var h2s = content.find(".mw-headline"); // search in all "content" nodes for nodes of class ".mw-headline"
+            var content = root.find(".wikitable"); // find all the nodes that have ID "content"
+            var trs = content.find("tr").not('tr:first'); 
+            //var header = content.find("tr:first");
+            var strings = [];
+            var header = "year,USCensus,PopulationBureau,UN,HYDE,Maddison";
 
-            $.each(h2s, function(index, value) {
-                console.log($(value).text()); // print text
-            });
+            
+            //console.log(header);
+            //console.log(trs);
+            //console.log(header.children('th'));
+
+            $.each(trs, function(index, value) {
+                //remove all columns after Madisson
+                $(trs).find("td:gt(5)").remove();
+                //console.log($(value).text()); // print text
+           });
+            
+            var filter_tr = trs.filter(function () {
+               // keep the rows that are not all empty and if year is greater than 0 and less than 2050
+               var year = $(this).find("td:first p").html();
+               return $(this).find('td:empty').length < 5 && year >= 0 && year <= 2050;
+           });
+
+          $.each(filter_tr,function(index,value){
+            var row_data = "";
+            // ACCESS VALUES AND CALL CONVERT TO INT
+
+            $.each($(this).children('td'), function(index, value){
+              var ints = convertToInt($(this).text());
+             
+                 
+                //strings[index].push = console.log(value);
+              if (isNaN(ints)) 
+                row_data += ",";
+              else
+                row_data += ints + ",";
+               
+            })
+            strings.push(row_data); 
+                
+          });
+	// adds headers back onto csv
+            strings.unshift(header);
+            
+            console.log(strings);
+
 			
-			saveToFile(["Hello World"],"test.txt")
+			saveToFile(strings,"data.csv")
         },
         error: function() {
             return console.log("error");
