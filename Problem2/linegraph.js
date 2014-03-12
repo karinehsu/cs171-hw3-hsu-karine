@@ -23,7 +23,7 @@
         h: 100
     };
 
-    var dataSet = [];
+    dataSet = [];
     var studies =[];
 
 
@@ -38,7 +38,7 @@
     d3.csv("data.csv", function(data) {
 
         dataSet = data;
-        console.log(dataSet);
+        //console.log(dataSet);
         color.domain(d3.keys(dataSet[0]).filter(function(key) { return key !== "year"; }));
           studies = color.domain().map(function(name) {
             return {
@@ -48,7 +48,47 @@
               })
             };
           });
-         
+
+        // interpolate
+        studies.map(function(d){
+            var knownYears = [];
+            var knownEstimates = [];
+            d.values.map(function(e,i){
+                if (e.estimate){
+                    knownYears.push(e.year);
+                    knownEstimates.push(e.estimate);
+                }
+
+            });
+            console.log(knownYears);
+            console.log(knownEstimates);
+
+            var min_year = d3.min(knownYears);
+            var max_year = d3.max(knownYears);
+            //console.log(max_year);
+
+             var interpolate = d3.scale.linear().domain(knownYears).range(knownEstimates);
+             d.values.map(function(e,i){
+                if ((e.estimate == 0) && (i > min_year && i < max_year)) {
+                    console.log("test");
+                     return {
+                      year: +e.year,
+                      population: interpolate(e.estimate),
+                      source: "interpolated"
+                     };
+                } 
+
+                else {
+                   return {
+                    year: +e.year,
+                    population: e.estimate,
+                    source: "original"
+                    };
+                }
+            });
+
+        });
+        
 
         return createVis();
     });
@@ -56,7 +96,7 @@
 
     createVis = function() {
         var xAxis, xScale, yAxis,  yScale, line;
-        console.log(studies);
+        //console.log(studies);
         
 
        
@@ -69,7 +109,7 @@
 
           visFrame.append("rect");
 
-         //restructure dataset  
+        
         
 
         xScale = d3.scale.linear().range([0, bbVis.w]);  // define the right domain generically
@@ -90,14 +130,14 @@
         .scale(yScale)
         .orient("left");
 
+
+
         var line = d3.svg.line()
-        .interpolate("linear")
+        //.interpolate("linear")
         .x(function(d) { return xScale(d.year); })
         .y(function(d) { return yScale(d.estimate); });
 
-         // line = d3.svg.line()
-         // .x(function(d,i) { return xScale(d.year); })
-         // .y(function(d,i) { return yScale(d.USCensus); });
+        
 
         svg.append("g")
         .attr("class", "x axis")
@@ -147,5 +187,5 @@
         .style("fill", function(d) { return color(this.parentNode.__data__.name);})
         .style("stroke", function(d) { return color(this.parentNode.__data__.name); })
         
-        //d3.select('line').style('fill','none');
+        
     };
