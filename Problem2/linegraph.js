@@ -23,7 +23,7 @@
         h: 100
     };
 
-    dataSet = [];
+    var dataSet = [];
     var studies =[];
 
 
@@ -44,13 +44,13 @@
             return {
               name: name,
               values: dataSet.map(function(d) {
-                return {year: +d.year, estimate: +d[name]};
+                return {year: +d.year, estimate: +d[name], interpolated: 0};
               })
             };
           });
 
-        // interpolate
-        studies.map(function(d){
+        // goes through studies data and creates known year and estimate arrays
+        studies.forEach(function(d){
             var knownYears = [];
             var knownEstimates = [];
             d.values.map(function(e,i){
@@ -67,38 +67,39 @@
             var max_year = d3.max(knownYears);
             //console.log(max_year);
 
+            // interpolates missing data points
              var interpolate = d3.scale.linear().domain(knownYears).range(knownEstimates);
-             d.values.map(function(e,i){
-                if ((e.estimate == 0) && (i > min_year && i < max_year)) {
-                    console.log("test");
-                     return {
-                      year: +e.year,
-                      population: interpolate(e.estimate),
-                      source: "interpolated"
-                     };
+             d.values.forEach(function(e,i){
+                if ((e.estimate == 0) && (e.year > min_year && e.year < max_year)) {
+                   // console.log("test");
+                    e.estimate = interpolate(e.year);
+                    e.interpolated = 1;
+                    
                 } 
 
-                else {
-                   return {
-                    year: +e.year,
-                    population: e.estimate,
-                    source: "original"
-                    };
+                // checks if values are within range
+                var a = d.values.length;
+                for (j = 0; j < a; j++){
+                    if (d.values[j].year < min_year || d.values[j].year > max_year){
+                        d.values.splice(j,1);
+                        a --; 
+                        j --;
+                    }
                 }
+
+               // console.log(min_year,max_year);
+
             });
 
         });
         
-
+        console.log(studies);
         return createVis();
     });
 
 
     createVis = function() {
         var xAxis, xScale, yAxis,  yScale, line;
-        //console.log(studies);
-        
-
        
 
         var visFrame = svg.append("g").attr({
@@ -163,7 +164,7 @@
 
         study.append("path")
         .attr("class", "line")
-        //console.log(dataSet.studies)
+        
         .attr("d", function(d) { return line(d.values); })
         .style("stroke", function(d) { return color(d.name); });
 
@@ -183,9 +184,12 @@
         .enter().append('circle')
         .attr("cx", function(d) { return xScale(d.year) })
         .attr("cy", function(d) { return yScale(d.estimate) })
-        .attr("r", 3.5)
+        .attr("r", function(d){ if(d.estimate == 0) return 0; else return 2;})
+
         .style("fill", function(d) { return color(this.parentNode.__data__.name);})
         .style("stroke", function(d) { return color(this.parentNode.__data__.name); })
+
+       
         
         
     };
