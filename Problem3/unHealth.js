@@ -12,7 +12,7 @@ var width = 960 - margin.left - margin.right;
 var height = 900 - margin.bottom - margin.top;
 
 bbOverview = {
-    x: 50,
+    x: 0,
     y: 10,
     w: width,
     h: 50
@@ -51,10 +51,13 @@ d3.csv("UN.csv", function(data) {
   var max_health = d3.max(dataSet,function(d){return d.health;});
 
   var chart1 = d3.select("#linegraph")
-    .append("svg");
+    .append("svg")
+    .append("g")
+    .attr({transform: "translate(" + margin.left + "," + margin.top + ")"});
 
   var chart2 = chart1
-    .append("svg");
+    .append("svg")
+    .append("g");
 
 var x = d3.time.scale()
     .domain([min_year,max_year])
@@ -95,22 +98,19 @@ var yAxis1 = d3.svg.axis()
     .orient("left");
 
 
-
 var line = d3.svg.line()
 .x(function(d) { return x(d.date); })
 .y(function(d) { return y(d.health); });
 
 
 var area = d3.svg.area()
-    .x(function(d) { return x(d.date); })
+    .x(function(d) { return x1(d.date); })
     .y0(bbDetail.h)
     .y1(function(d) { return y1(d.health); });
 
-
-
   chart1.append("g")
       .attr("class", "x axis")
-      .attr("transform", "translate(0," + bbOverview.x + ")")
+      .attr("transform", "translate(0," + bbOverview.h + ")")
       .call(xAxis);
 
   chart1.append("g")
@@ -133,8 +133,6 @@ var area = d3.svg.area()
         .attr("r", 2)
         .style("fill", "blue");
 
-        // .style("fill", function(d) { return color(this.parentNode.__data__.name);})
-        // .style("stroke", function(d) { return color(this.parentNode.__data__.name); })
 
   chart2.append("path")
       .datum(dataSet)
@@ -157,9 +155,26 @@ var area = d3.svg.area()
         .attr("transform", "translate(0," + bbDetail.h + ")")
         .call(xAxis1);
 
-      chart2.append("g")
+      chart1.append("g")
         .attr("class", "y axis")
         .call(yAxis1);
+
+      chart1.append("defs").append("clipPath")
+        .attr("id", "clip")
+      .append("rect")
+        .attr("width", width)
+        .attr("height", height);
+
+
+  function brushed() {
+    x1.domain(brush.empty() ? x.domain() : brush.extent());
+    chart1.select(".area").attr("d", area);
+    point.selectAll('circle')
+      .attr("cx", function(d) { return x1(d.date) })
+      .attr("cy", function(d) { return y1(d.health) })
+    d3.select(".x axis").call(xAxis);
+    }
+
 
   var brush = d3.svg.brush().x(x).on("brush", brushed);
   
@@ -170,13 +185,8 @@ var area = d3.svg.area()
   });
 
 
-});
 
-function brushed() {
-  x.domain(brush.empty() ? x1.domain() : brush.extent());
-  focus.select(".area").attr("d", area);
-  focus.select(".x axis").call(xAxis);
-}
+});
 
 
 
