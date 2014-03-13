@@ -67,7 +67,7 @@
             var max_year = d3.max(knownYears);
             //console.log(max_year);
 
-            // interpolates missing data points
+            //interpolates missing data points
              var interpolate = d3.scale.linear().domain(knownYears).range(knownEstimates);
              d.values.forEach(function(e,i){
                 if ((e.estimate == 0) && (e.year > min_year && e.year < max_year)) {
@@ -87,7 +87,7 @@
                     }
                 }
 
-               // console.log(min_year,max_year);
+               console.log(min_year,max_year);
 
             });
 
