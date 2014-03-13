@@ -29,11 +29,12 @@ var color = d3.scale.category10();
 
 
 var ranks = [];
+var dateFormat = d3.time.format("%Y%d%m");
 
 d3.csv("UN.csv", function(data) {
 
-
-  var parseDate = d3.time.format("%Y%d%m").parse;
+  
+  var parseDate = dateFormat.parse;
 
      data.forEach(function(d) {
       d.date = parseDate(d.date);
@@ -50,6 +51,7 @@ d3.csv("UN.csv", function(data) {
   var min_health = d3.min(dataSet,function(d){return d.health;});
   var max_health = d3.max(dataSet,function(d){return d.health;});
 
+  //creates line graph
   var chart1 = d3.select("#linegraph")
     .append("svg")
     .append("g")
@@ -85,7 +87,7 @@ var xAxis = d3.svg.axis()
 
 // sets xAxis for area chart   
 var xAxis1 = d3.svg.axis()
-    .scale(x)
+    .scale(x1)
     .orient("bottom")
     .ticks(d3.time.months,3);
 
@@ -153,7 +155,7 @@ var area = d3.svg.area()
         .style("fill", "blue");
 
       chart2.append("g")
-        .attr("class", "x axis")
+        .attr("class", "x axis2")
         .attr("transform", "translate(0," + bbDetail.h + ")")
         .call(xAxis1);
 
@@ -170,12 +172,17 @@ var area = d3.svg.area()
 // add brushed function
   function brushed() {
     x1.domain(brush.empty() ? x.domain() : brush.extent());
-    chart1.select(".area").attr("d", area);
+    update_scale(x1);
+  }
+
+  function update_scale(scale) {
+      chart1.select(".area").attr("d", area);
+    // change axes
+    chart1.select(".axis2").call(xAxis1);
     point.selectAll('circle')
       .attr("cx", function(d) { return x1(d.date) })
-      .attr("cy", function(d) { return y1(d.health) })
-    d3.select(".x axis").call(xAxis);
-    }
+      .attr("cy", function(d) { return y1(d.health) });
+  }
 
 
   var brush = d3.svg.brush().x(x).on("brush", brushed);
@@ -186,6 +193,37 @@ var area = d3.svg.area()
   height: bbOverview.h,
   transform: "translate(0,0)"
   });
+
+  // select October button and range
+  d3.select("input[value=\"october2012\"]").on("click", function(d){
+    var octdate = dateFormat.parse(d3.select(this).attr("data-date"));
+    var lowerRangeOct = d3.time.month.offset(octdate,-2);
+    var upperRangeOct = d3.time.month.offset(octdate,2);
+   
+    //creates manual range
+    brush.extent([lowerRangeOct, upperRangeOct]);
+    //calls brush d3
+    chart1.selectAll(".brush").call(brush);
+    //updates the bottom graph domain
+    x1.domain([lowerRangeOct,upperRangeOct]);
+    update_scale(x1);
+  });
+
+  // select July button and range
+  d3.select("input[value=\"july2013\"]").on("click", function(d){
+    var julydate = dateFormat.parse(d3.select(this).attr("data-date"));
+    var lowerRangeJuly = d3.time.month.offset(julydate,-2);
+    var upperRangeJuly = d3.time.month.offset(julydate,2);
+   
+    //creates manual range
+    brush.extent([lowerRangeJuly, upperRangeJuly]);
+    //calls brush d3
+    chart1.selectAll(".brush").call(brush);
+    //updates the bottom graph domain
+    x1.domain([lowerRangeJuly,upperRangeJuly]);
+    update_scale(x1);
+  });
+
 
 
 
