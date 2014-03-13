@@ -4,6 +4,12 @@
     <title></title>
     <script src="../libs/d3.v3.min.js"></script>
     <style>
+
+        circle {
+
+            clip-path: url(#clip);
+        }
+        
         .axis path,
         .axis line {
             fill: none;
@@ -47,12 +53,11 @@
             stroke-width:2;
         }
 
-
-
         .area {
             stroke: none;
             fill:steelblue;
             fill-opacity:0.5;
+            clip-path: url(#clip);
         }
 
     </style>
