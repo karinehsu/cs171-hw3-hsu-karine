@@ -8,4 +8,4 @@ The "extent" class is inside the "brush" class and is also of type rect.
 
 3) What are the other DOM elements for?
 
-The two other DOM elements added are the resize e and resize w classes. The resize e class allows the user to change the selection on the right/east side, and the resize w class allows the user to change the selection on the left/west side. 
+The two other DOM elements added are the resize e and resize w classes. The ".resize.e" class allows the user to change the selection on the right/east side, and the ".resize.w" class allows the user to change the selection on the left/west side. 
