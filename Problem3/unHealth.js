@@ -59,6 +59,7 @@ d3.csv("UN.csv", function(data) {
     .append("svg")
     .append("g");
 
+//sets x scale and y scale
 var x = d3.time.scale()
     .domain([min_year,max_year])
     .range([bbOverview.x, bbOverview.w]);
@@ -68,7 +69,7 @@ var y = d3.scale.linear()
     .domain([0, max_health])
     .range([bbOverview.h, bbOverview.y]);
 
-
+//set x1 and y1 scale for area graph
 var x1 = d3.time.scale()
     .domain([min_year,max_year])
     .range([bbDetail.x, bbDetail.w]);
@@ -81,8 +82,8 @@ var xAxis = d3.svg.axis()
     .scale(x)
     .orient("bottom")
     .ticks(d3.time.months,3);
-   
 
+// sets xAxis for area chart   
 var xAxis1 = d3.svg.axis()
     .scale(x)
     .orient("bottom")
@@ -102,7 +103,7 @@ var line = d3.svg.line()
 .x(function(d) { return x(d.date); })
 .y(function(d) { return y(d.health); });
 
-
+// add area chart
 var area = d3.svg.area()
     .x(function(d) { return x1(d.date); })
     .y0(bbDetail.h)
@@ -139,6 +140,7 @@ var area = d3.svg.area()
       .attr("class", "area")
       .attr("d", area);
 
+  // add points to lines
   var point = chart2.append("g")
       .attr("class", "line-point");
 
@@ -165,7 +167,7 @@ var area = d3.svg.area()
         .attr("width", width)
         .attr("height", height);
 
-
+// add brushed function
   function brushed() {
     x1.domain(brush.empty() ? x.domain() : brush.extent());
     chart1.select(".area").attr("d", area);
@@ -178,6 +180,7 @@ var area = d3.svg.area()
 
   var brush = d3.svg.brush().x(x).on("brush", brushed);
   
+  // calls brush functionality
   chart1.append("g").attr("class", "brush").call(brush)
   .selectAll("rect").attr({
   height: bbOverview.h,
