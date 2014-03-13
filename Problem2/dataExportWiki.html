@@ -63,11 +63,18 @@
             strings.push(row_data); 
                 
           });
-	// adds headers back onto csv
+
             strings.unshift(header);
             
             console.log(strings);
 
+
+          //strings row = 5 separate with linebreak
+            
+
+
+         // console.log($(filter_tr).find("td: firstElementChild: p :innerHTML"));
+           // arrayOfLines
 			
 			saveToFile(strings,"data.csv")
         },
